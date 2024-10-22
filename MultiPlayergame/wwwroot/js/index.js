@@ -1,114 +1,101 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-
-const PLAYER_SIZE = 20; // 玩家方塊的大小
-let players = {}; // 用來存儲所有玩家的資料
-let connectionId; // 用來儲存當前玩家的連接 ID
-
-// 繪製所有玩家
-function drawPlayers() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除畫布
-    for (const playerId in players) {
-        const player = players[playerId];
-        ctx.fillStyle = playerId === connectionId ? 'blue' : 'red'; // 自己的玩家是藍色，其他玩家是紅色
-        ctx.fillRect(player.x, player.y, PLAYER_SIZE, PLAYER_SIZE); // 繪製方塊
-    }
-}
-
-// 前端的 SignalR 客戶端配置
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("http://localhost:5056/Hubs/MultiPlayerHub")  // 使用完整 URL
+    .withUrl("/Hubs")
     .build();
 
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const playerSize = 20;
+let player = { x: Math.random() * (canvas.width - playerSize), y: Math.random() * (canvas.height - playerSize) }; // 玩家初始位置
 
-// 啟動連接
-connection.start().then(() => {
-    console.log("SignalR connection established");
-}).catch(err => console.error("Error while starting connection: " + err));
-
-
-// 監聽從伺服器發送過來的玩家列表更新
-connection.on("UpdatePlayers", (updatedPlayers) => {
-    console.log("收到玩家更新:", updatedPlayers); // 顯示接收到的玩家資料
-    players = {}; // 清空現有的玩家資料
-
-    // 更新玩家列表
-    updatedPlayers.forEach(player => {
-        players[player.id] = player; // 存儲每個玩家的信息
-    });
-
-    // 顯示當前玩家數量
-    const playerCount = updatedPlayers.length;
-    console.log("當前玩家數量: " + playerCount);
-
-    drawPlayers(); // 繪製玩家
-});
-
-
-
-
-async function startGame() {
-    try {
-        await connection.start();
-        connectionId = connection.connectionId; // 獲取當前玩家的連接 ID
-        await connection.invoke("JoinGame"); // 發送加入遊戲請求
-        console.log("成功連接到 SignalR！");
-    } catch (err) {
-        console.error(err);
-        setTimeout(startGame, 5000); // 如果連接失敗，5秒後重試
-    }
+// 畫出玩家的方塊
+function drawPlayer() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除畫布
+    ctx.fillStyle = "blue"; // 玩家方塊顏色
+    ctx.fillRect(player.x, player.y, playerSize, playerSize);
 }
 
+// 畫出其他玩家的方塊
+const otherPlayers = {}; // 用於儲存其他玩家的位置
 
-// 處理玩家移動
-function movePlayer(direction) {
-    if (!players[connectionId]) return; // 如果當前玩家不存在則不處理
-
-    // 根據方向更新玩家位置
-    switch (direction) {
-        case "up":
-            if (players[connectionId].y > 0) players[connectionId].y -= PLAYER_SIZE;
-            break;
-        case "down":
-            if (players[connectionId].y < canvas.height - PLAYER_SIZE) players[connectionId].y += PLAYER_SIZE;
-            break;
-        case "left":
-            if (players[connectionId].x > 0) players[connectionId].x -= PLAYER_SIZE;
-            break;
-        case "right":
-            if (players[connectionId].x < canvas.width - PLAYER_SIZE) players[connectionId].x += PLAYER_SIZE;
-            break;
-    }
-
-    drawPlayers(); // 更新畫面
-    connection.invoke("MovePlayer", direction); // 通知伺服器該玩家移動了
+function drawOtherPlayer(connectionId, x, y) {
+    ctx.fillStyle = "red"; // 其他玩家方塊顏色
+    ctx.fillRect(x, y, playerSize, playerSize);
 }
 
-// 處理鍵盤事件來控制玩家
-document.addEventListener("keydown", (event) => {
-    let direction = null;
+// 監聽鍵盤事件來移動玩家
+window.addEventListener("keydown", async (event) => {
     switch (event.key) {
         case "ArrowUp":
-        case "w":
-            direction = "up";
+            player.y -= 5;
             break;
         case "ArrowDown":
-        case "s":
-            direction = "down";
+            player.y += 5;
             break;
         case "ArrowLeft":
-        case "a":
-            direction = "left";
+            player.x -= 5;
             break;
         case "ArrowRight":
-        case "d":
-            direction = "right";
+            player.x += 5;
             break;
     }
-    if (direction) {
-        movePlayer(direction); // 根據鍵盤事件來移動玩家
+
+    // 畫出自己的方塊
+    drawPlayer();
+
+    // 通知其他玩家自己移動的座標
+    await connection.invoke("MovePlayer", player.x, player.y);
+});
+
+// 接收其他玩家移動的座標
+connection.on("PlayerMoved", (connectionId, x, y) => {
+    otherPlayers[connectionId] = { x, y };
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除畫布
+
+    // 畫出自己的方塊
+    drawPlayer();
+
+    // 畫出其他玩家的方塊
+    for (const id in otherPlayers) {
+        drawOtherPlayer(id, otherPlayers[id].x, otherPlayers[id].y);
     }
 });
 
-// 開始遊戲
-startGame();
+// 接收新玩家連接的通知
+connection.on("NewPlayer", (connectionId) => {
+    otherPlayers[connectionId] = { x: Math.random() * (canvas.width - playerSize), y: Math.random() * (canvas.height - playerSize) }; // 隨機位置
+});
+
+// 接收玩家斷開的通知
+connection.on("PlayerDisconnected", (connectionId) => {
+    delete otherPlayers[connectionId];
+});
+
+// 啟動 SignalR 連接
+async function startConnection() {
+    try {
+        await connection.start(); // 嘗試啟動連接
+        drawPlayer(); // 畫出玩家的方塊
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// 停止連接的函數
+async function stopConnection() {
+    try {
+        if (connection.state !== signalR.HubConnectionState.Disconnected) {
+            await connection.stop(); // 停止當前的連接
+        }
+    } catch (err) {
+        console.error("Error stopping connection: ", err);
+    }
+}
+
+// 初始化連接
+async function initialize() {
+    await stopConnection(); // 確保當前連接已經停止
+    await startConnection(); // 然後啟動新的連接
+}
+
+// 初始化連接
+initialize();

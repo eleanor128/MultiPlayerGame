@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayerGame\\MultiPlayergame.csproj": {}
+    "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayergame\\MultiPlayergame.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayerGame\\MultiPlayergame.csproj": {
+    "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayergame\\MultiPlayergame.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayerGame\\MultiPlayergame.csproj",
+        "projectUniqueName": "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayergame\\MultiPlayergame.csproj",
         "projectName": "MultiPlayergame",
-        "projectPath": "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayerGame\\MultiPlayergame.csproj",
+        "projectPath": "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayergame\\MultiPlayergame.csproj",
         "packagesPath": "C:\\Users\\Eleanor\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayerGame\\obj\\",
+        "outputPath": "C:\\Users\\Eleanor\\Desktop\\MultiPlayerGame\\MultiPlayergame\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Eleanor\\AppData\\Roaming\\NuGet\\NuGet.Config"
