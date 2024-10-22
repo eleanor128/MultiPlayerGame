@@ -13,11 +13,11 @@
 
 body {
     background: #000d36;
-    color: white;
+    color: #7b7de6;
 }
 
 #canvas {
-    background: #fff;
+    background: #7b7de6;
     margin-left: 50%;
     margin-top: 1%;
     transform: translateX(-50%);
