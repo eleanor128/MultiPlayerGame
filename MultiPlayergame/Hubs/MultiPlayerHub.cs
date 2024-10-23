@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 
-namespace MultiPlayergame.Hubs
+namespace MultiPlayerGame.Hubs
 {
     public class MultiPlayerHub : Hub
     {

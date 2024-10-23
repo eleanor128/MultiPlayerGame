@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Azure.SignalR;
-using MultiPlayergame.Hubs; // 確保這個指令在檔案的開頭
+using MultiPlayerGame.Hubs; // 確保這個指令在檔案的開頭
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,12 +13,14 @@ builder.Services.AddRazorPages(); // 允許使用 Razor Pages
 builder.Services.AddSignalR() // 註冊 SignalR 服務
     .AddAzureSignalR(builder.Configuration["AzureSignalRConnectionString"]); // 設定 Azure SignalR 連接
 
+
+// 添加 CORS 支援
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
         builder =>
         {
-            builder.WithOrigins("https://example.com") // 這裡需要根據你的需求調整
+            builder.WithOrigins("http://localhost:5056") // 這裡需要根據你的需求調整
                 .AllowAnyHeader()
                 .AllowAnyMethod() // 允許所有 HTTP 方法
                 .AllowCredentials();
@@ -50,7 +52,7 @@ app.MapGet("/", async context =>
 });
 
 // 加入 SignalR Hub 的路由配置
-app.MapHub<MultiPlayerHub>("Hubs"); // 這裡的路徑根據需要進行調整
+app.MapHub<MultiPlayerHub>("/Hubs"); // 這裡的路徑根據需要進行調整
 
 // 當找不到其他路由時回到 index.html
 app.MapFallbackToFile("index.html");
